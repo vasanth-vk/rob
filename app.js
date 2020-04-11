@@ -70,9 +70,8 @@ function getFiles(auth) {
         return sftp.list('/');
     }).then(data => {
         data.forEach(function (row) {
-            //console.log(row)
-            sftp.get('' + row.name, fs.createWriteStream('./' + row.name));
-            storeFiles(auth, './' + row.name, data.length)
+            sftp.get('' + row.name, fs.createWriteStream('/tmp/' + row.name));
+            storeFiles(auth, '/tmp/' + row.name, data.length)
         });
     }).catch(err => {
         console.log(err, 'catch error');

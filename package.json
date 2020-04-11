@@ -1,10 +1,11 @@
 {
   "name": "rob",
   "version": "1.0.0",
-  "description": "",
+  "description": "rob scrabe",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "mocha"
   },
   "author": "",
   "license": "ISC",
@@ -13,5 +14,13 @@
     "googleapis": "^48.0.0",
     "readline": "^1.3.0",
     "ssh2-sftp-client": "^5.1.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vasanth-vk/rob.git"
+  },
+  "bugs": {
+    "url": "https://github.com/vasanth-vk/rob/issues"
+  },
+  "homepage": "https://github.com/vasanth-vk/rob#readme"
 }
