@@ -1,15 +1,16 @@
 let Client = require('ssh2-sftp-client');
 let sftp = new Client();
 
-const fs = require('fs');
+const fs = require('fs-extra');
 const readline = require('readline');
 const { google } = require('googleapis');
-const credentials = {
-    "installed": {
-        "client_id": "300561756525-32tmrrcml0jknf2h2vdm11tr70fc4ofq.apps.googleusercontent.com", "project_id": "inventory01", "auth_uri": "https://accounts.google.com/o/oauth2/auth", "token_uri": "https://oauth2.googleapis.com/token", "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs", "client_secret": "OKV-RY3Y0_aNDfEmFFjViUS9", "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"]
-    }
-}
-const SCOPES = ['https://www.googleapis.com/auth/drive'];
+const csv = require('csv-parser');
+
+var sheetId = '17f6tXb3Mv1iSlym85H5apbxEtoMhUguAGdk95TNoP40';
+var folder = '1zvguZJ6P8aUx8ljXJuc_-2GBmeZRZq0k';
+
+const credentials = { "installed": { "client_id": "24603474485-3krnmbhck86r2nim6agr4tjamqbibnvi.apps.googleusercontent.com", "project_id": "fleacircus", "auth_uri": "https://accounts.google.com/o/oauth2/auth", "token_uri": "https://oauth2.googleapis.com/token", "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs", "client_secret": "WzlsGubobwxRLi6N9jHtdB-l", "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"] } }
+const SCOPES = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'];
 const TOKEN_PATH = 'token.json';
 
 
@@ -70,8 +71,9 @@ function getFiles(auth) {
         return sftp.list('/');
     }).then(data => {
         data.forEach(function (row) {
-            sftp.get('' + row.name, fs.createWriteStream('/tmp/' + row.name));
-            storeFiles(auth, '/tmp/' + row.name, data.length)
+            //console.log(row)
+            sftp.get('' + row.name, fs.createWriteStream('./' + row.name));
+            storeFiles(auth, './' + row.name, data.length)
         });
     }).catch(err => {
         console.log(err, 'catch error');
@@ -83,12 +85,15 @@ async function storeFiles(auth, File_Name, total_file) {
     const drive = google.drive({ version: 'v3', auth });
     var fileMetadata = {
         'name': File_Name.replace("./", ""),
-        'mimeType': 'application/vnd.google-apps.spreadsheet'
+        'mimeType': 'application/vnd.google-apps.spreadsheet',
+        parents: [folder],
     };
     setTimeout(async function () {
+        var SourceData = fs.createReadStream(File_Name);
+        writefile(auth, SourceData, File_Name);
         var media = {
             mimeType: 'application/vnd.ms-excel',
-            body: fs.createReadStream(File_Name)
+            body: SourceData
         };
         await drive.files.create({
             resource: fileMetadata,
@@ -104,7 +109,80 @@ async function storeFiles(auth, File_Name, total_file) {
         count++;
         if (total_file == count) {
             console.log("end");
-            // sftp.end();
+            try {
+                sftp.end();
+            } catch (e) {
+                console.log("closed")
+            }
         }
     }, 10000);
+}
+
+function writefile(auth, data, File_Name) {
+    var array = [];
+    data.pipe(csv())
+        .on('data', (row) => {
+            array.push(row);
+        })
+        .on('end', () => {
+            console.log('CSV file successfully processed');
+            console.log(array.length);
+            toWrite(auth, array);
+            fs.remove(File_Name)
+        });
+}
+function toWrite(auth, data) {
+    if (!data[0]['Image URL']) {
+        return;
+    }
+    //console.log(data)
+    const sheets = google.sheets({ version: 'v4', auth });
+    sheets.spreadsheets.values.clear({
+        spreadsheetId: sheetId,
+        range: 'FleaCircus!A2:Q',
+    }, (err, res) => {
+        if (err) return console.log('The API returned an error: ' + err);
+        if (res) {
+            sheets.spreadsheets.values.get({
+                spreadsheetId: sheetId,
+                range: 'FleaCircus!A1:Q1',
+            }, (err, res) => {
+                if (err) return console.log('The API returned an error: ' + err);
+                if (res) {
+                    //console.log(res.data.values);
+                    var header = res.data.values;
+                    var values = [];
+                    data.forEach(function (row) {
+                        var array = [];
+                        header[0].forEach(function (item) {
+                            array.push(row[item]);
+                        });
+                        values.push(array);
+                    });
+                    //console.log(values)
+                    const resource = {
+                        values: values,
+                    };
+                    sheets.spreadsheets.values.update({
+                        spreadsheetId: sheetId,
+                        range: 'FleaCircus!A2:Q',
+                        valueInputOption: "USER_ENTERED",
+                        resource: resource
+                    }, (err, res) => {
+                        if (err) return console.log('The API returned an error: ' + err);
+                        if (res) {
+                            console.log(res.statusText);
+                        } else {
+                            console.log('No data found.');
+                        }
+                    });
+
+                } else {
+                    console.log('No header found.');
+                }
+            });
+        } else {
+            console.log('sheet not Clear.');
+        }
+    });
 }
