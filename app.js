@@ -6,8 +6,8 @@ const readline = require('readline');
 const { google } = require('googleapis');
 const csv = require('csv-parser');
 
-var sheetId = '17f6tXb3Mv1iSlym85H5apbxEtoMhUguAGdk95TNoP40';
-var folder = '1zvguZJ6P8aUx8ljXJuc_-2GBmeZRZq0k';
+var sheetId = '1VRP7E5z5KAi6QTHzqCL5RmfCdel80iucVgE8S2wzzDQ';
+var folder = '1ziXBU98_Rk0ZEa-T-5HPEexIzhZi-0B-';
 
 const credentials = { "installed": { "client_id": "24603474485-3krnmbhck86r2nim6agr4tjamqbibnvi.apps.googleusercontent.com", "project_id": "fleacircus", "auth_uri": "https://accounts.google.com/o/oauth2/auth", "token_uri": "https://oauth2.googleapis.com/token", "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs", "client_secret": "WzlsGubobwxRLi6N9jHtdB-l", "redirect_uris": ["urn:ietf:wg:oauth:2.0:oob", "http://localhost"] } }
 const SCOPES = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/spreadsheets'];
@@ -16,6 +16,7 @@ const TOKEN_PATH = 'token.json';
 
 
 (async function main() {
+    console.log("````````````````````````````````Starting``````````````````````````````")
     authorize(credentials, getFiles);
 
 })();
@@ -72,8 +73,8 @@ function getFiles(auth) {
     }).then(data => {
         data.forEach(function (row) {
             //console.log(row)
-            sftp.get('' + row.name, fs.createWriteStream('./' + row.name));
-            storeFiles(auth, './' + row.name, data.length)
+            sftp.get('' + row.name, fs.createWriteStream('/tmp/' + row.name));
+            storeFiles(auth, '/tmp/' + row.name, data.length)
         });
     }).catch(err => {
         console.log(err, 'catch error');
@@ -84,7 +85,7 @@ var count = 0;
 async function storeFiles(auth, File_Name, total_file) {
     const drive = google.drive({ version: 'v3', auth });
     var fileMetadata = {
-        'name': File_Name.replace("./", ""),
+        'name': File_Name.replace("/tmp/", "").replace(".csv", ""),
         'mimeType': 'application/vnd.google-apps.spreadsheet',
         parents: [folder],
     };
@@ -108,7 +109,7 @@ async function storeFiles(auth, File_Name, total_file) {
         });
         count++;
         if (total_file == count) {
-            console.log("end");
+            console.log("````````````````````````````````END``````````````````````````````")
             try {
                 sftp.end();
             } catch (e) {
