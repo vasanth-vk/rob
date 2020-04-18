@@ -1,4 +1,0 @@
-cron:
-- description: "test dispatch vs target"
-  url: /
-  schedule: every monday 09:00
