@@ -1,4 +1,4 @@
 cron:
 - description: "Get file to upload drive"
   url: /
-  schedule: every 10 mins
+  schedule: every 12 hours

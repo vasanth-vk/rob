@@ -96,6 +96,21 @@ async function storeFiles(auth, File_Name, total_file) {
             mimeType: 'application/vnd.ms-excel',
             body: SourceData
         };
+        await drive.files.list({
+        }, function (err, res) {
+            if (err) {
+                console.error(err.data.error);
+            } else {
+                res.data.files.forEach(function (file) {
+                    if (file.name == File_Name.replace("/tmp/", "").replace(".csv", "")) {
+                        drive.files.delete({
+                            "fileId": file.id
+                        });
+                    }
+                });
+            }
+        });
+
         await drive.files.create({
             resource: fileMetadata,
             media: media,
