@@ -155,7 +155,7 @@ function toWrite(auth, data) {
     const sheets = google.sheets({ version: 'v4', auth });
     sheets.spreadsheets.values.clear({
         spreadsheetId: sheetId,
-        range: 'FleaCircus!A2:Q',
+        range: 'FleaCircus!A2:R',
     }, (err, res) => {
         if (err) return console.log('The API returned an error: ' + err);
         if (res) {
@@ -185,7 +185,7 @@ function toWrite(auth, data) {
                     };
                     sheets.spreadsheets.values.update({
                         spreadsheetId: sheetId,
-                        range: 'FleaCircus!A2:Q',
+                        range: 'FleaCircus!A2:R',
                         valueInputOption: "USER_ENTERED",
                         resource: resource
                     }, (err, res) => {
