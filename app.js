@@ -85,7 +85,7 @@ var count = 0;
 async function storeFiles(auth, File_Name, total_file) {
     const drive = google.drive({ version: 'v3', auth });
     var fileMetadata = {
-        'name': File_Name.replace("/tmp/", "").replace(".csv", "") + "_" + new Date().toISOString(),
+        'name': File_Name.replace("/tmp/", "").replace(".csv", "") + " " + new Date().toISOString().replace("Z", "").replace("T", " "),
         'mimeType': 'application/vnd.google-apps.spreadsheet',
         parents: [folder],
     };
@@ -161,7 +161,7 @@ function toWrite(auth, data) {
         if (res) {
             sheets.spreadsheets.values.get({
                 spreadsheetId: sheetId,
-                range: 'FleaCircus!A1:Q1',
+                range: 'FleaCircus!A1:R1',
             }, (err, res) => {
                 if (err) return console.log('The API returned an error: ' + err);
                 if (res) {
@@ -172,7 +172,7 @@ function toWrite(auth, data) {
                         var array = [];
                         header[0].forEach(function (item) {
                             if (item.toLowerCase().indexOf('timestamp') > -1 || item.toLowerCase().indexOf('stamp') > -1) {
-                                array.push(new Date().toISOString());
+                                array.push(new Date().toISOString().replace("T", " ").replace("Z", ""));
                             } else {
                                 array.push(row[item]);
                             }
