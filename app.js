@@ -85,7 +85,7 @@ var count = 0;
 async function storeFiles(auth, File_Name, total_file) {
     const drive = google.drive({ version: 'v3', auth });
     var fileMetadata = {
-        'name': File_Name.replace("/tmp/", "").replace(".csv", ""),
+        'name': File_Name.replace("/tmp/", "").replace(".csv", "") + "_" + new Date().toISOString(),
         'mimeType': 'application/vnd.google-apps.spreadsheet',
         parents: [folder],
     };
@@ -96,20 +96,20 @@ async function storeFiles(auth, File_Name, total_file) {
             mimeType: 'application/vnd.ms-excel',
             body: SourceData
         };
-        await drive.files.list({
-        }, function (err, res) {
-            if (err) {
-                console.error(err.data.error);
-            } else {
-                res.data.files.forEach(function (file) {
-                    if (file.name == File_Name.replace("/tmp/", "").replace(".csv", "")) {
-                        drive.files.delete({
-                            "fileId": file.id
-                        });
-                    }
-                });
-            }
-        });
+        // await drive.files.list({
+        // }, function (err, res) {
+        //     if (err) {
+        //         console.error(err.data.error);
+        //     } else {
+        //         res.data.files.forEach(function (file) {
+        //             if (file.name == File_Name.replace("/tmp/", "").replace(".csv", "")) {
+        //                 drive.files.delete({
+        //                     "fileId": file.id
+        //                 });
+        //             }
+        //         });
+        //     }
+        // });
 
         await drive.files.create({
             resource: fileMetadata,
@@ -171,7 +171,11 @@ function toWrite(auth, data) {
                     data.forEach(function (row) {
                         var array = [];
                         header[0].forEach(function (item) {
-                            array.push(row[item]);
+                            if (item.toLowerCase().indexOf('timestamp') > -1 || item.toLowerCase().indexOf('stamp') > -1) {
+                                array.push(new Date().toISOString());
+                            } else {
+                                array.push(row[item]);
+                            }
                         });
                         values.push(array);
                     });
