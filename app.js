@@ -225,10 +225,19 @@ function getDateAndTime() {
     }
     var time = split[2].split(",")[1];
     if (time.indexOf('PM') > -1) {
-        var ts = time.split(":")
-        time = (Number(ts[0]) + 12) + ":" + ts[1] + ":" + ts[2].replace(" PM", "")
+        var ts = time.split(":");
+        if (Number(ts[0]) < 12) {
+            time = (Number(ts[0]) + 12) + ":" + ts[1] + ":" + ts[2].replace(" PM", "");
+        } else {
+            time = (Number(ts[0])) + ":" + ts[1] + ":" + ts[2].replace(" PM", "");
+        }
     } else {
-        time.replace(" AM", "")
+        var ts = time.split(":");
+        if (Number(ts[0]) < 12) {
+            time = (Number(ts[0]) + 12) + ":" + ts[1] + ":" + ts[2].replace(" AM", "");
+        } else {
+            time = "00" + ":" + ts[1] + ":" + ts[2].replace(" AM", "");
+        }
     }
 
     return year + "-" + month + "-" + date + " " + time;
