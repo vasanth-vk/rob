@@ -85,7 +85,7 @@ var count = 0;
 async function storeFiles(auth, File_Name, total_file) {
     const drive = google.drive({ version: 'v3', auth });
     var fileMetadata = {
-        'name': File_Name.replace("/tmp/", "").replace(".csv", "") + " " + new Date().toISOString().replace("Z", "").replace("T", " "),
+        'name': File_Name.replace("/tmp/", "").replace(".csv", "") + " " + getDateAndTime(),
         'mimeType': 'application/vnd.google-apps.spreadsheet',
         parents: [folder],
     };
@@ -172,7 +172,7 @@ function toWrite(auth, data) {
                         var array = [];
                         header[0].forEach(function (item) {
                             if (item.toLowerCase().indexOf('timestamp') > -1 || item.toLowerCase().indexOf('stamp') > -1) {
-                                array.push(new Date().toISOString().replace("T", " ").replace("Z", ""));
+                                array.push(getDateAndTime());
                             } else {
                                 array.push(row[item]);
                             }
@@ -205,4 +205,31 @@ function toWrite(auth, data) {
             console.log('sheet not Clear.');
         }
     });
+}
+
+function getDateAndTime() {
+    const nDate = new Date().toLocaleString('en-AU', {
+        timeZone: 'Australia/Sydney',
+    });
+    console.log(nDate)
+    var split = nDate.split("/");
+    var splitTime = nDate.split(",");
+    var year = split[2].split(",")[0];
+    var month = split[0];
+    var date = split[1];
+    if (Number(month) < 10) {
+        month = "0" + month;
+    }
+    if (Number(date) < 10) {
+        date = '0' + date;
+    }
+    var time = split[2].split(",")[1];
+    if (time.indexOf('PM') > -1) {
+        var ts = time.split(":")
+        time = (Number(ts[0]) + 12) + ":" + ts[1] + ":" + ts[2].replace(" PM", "")
+    } else {
+        time.replace(" AM", "")
+    }
+
+    return year + "-" + month + "-" + date + " " + time;
 }
